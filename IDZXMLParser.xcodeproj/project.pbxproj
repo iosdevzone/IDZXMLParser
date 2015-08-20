@@ -12,6 +12,7 @@
 		0CD6419B1B847EC1000846BD /* IDZXMLParserExpatTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CD6419A1B847EC1000846BD /* IDZXMLParserExpatTests.m */; };
 		0CD6419E1B851409000846BD /* NSXMLParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CD6419D1B851409000846BD /* NSXMLParserTests.m */; };
 		0CD641A01B85363D000846BD /* empty.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0CD6419F1B85363D000846BD /* empty.xml */; };
+		0CD6426A1B8678D7000846BD /* IDZXMLParserLibXML2Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CD642691B8678D7000846BD /* IDZXMLParserLibXML2Tests.m */; };
 		30719E951B7CA07000AE558F /* IDZXMLParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 30719E941B7CA07000AE558F /* IDZXMLParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		30719E9B1B7CA07000AE558F /* IDZXMLParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30719E8F1B7CA07000AE558F /* IDZXMLParser.framework */; };
 		30719EA21B7CA07000AE558F /* IDZXMLParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 30719EA11B7CA07000AE558F /* IDZXMLParserTests.m */; };
@@ -45,6 +46,7 @@
 		0CD6419C1B8513A8000846BD /* IDZXMLParserTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDZXMLParserTests.h; sourceTree = "<group>"; };
 		0CD6419D1B851409000846BD /* NSXMLParserTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParserTests.m; sourceTree = "<group>"; };
 		0CD6419F1B85363D000846BD /* empty.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = empty.xml; sourceTree = "<group>"; };
+		0CD642691B8678D7000846BD /* IDZXMLParserLibXML2Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDZXMLParserLibXML2Tests.m; sourceTree = "<group>"; };
 		0F4D0371C21316740CB2471E /* Pods-IDZXMLParserTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IDZXMLParserTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-IDZXMLParserTests/Pods-IDZXMLParserTests.debug.xcconfig"; sourceTree = "<group>"; };
 		30719E8F1B7CA07000AE558F /* IDZXMLParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = IDZXMLParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		30719E931B7CA07000AE558F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 				30719EAC1B7CA0B400AE558F /* IDZXMLParserCallLogger.m */,
 				0CD6419D1B851409000846BD /* NSXMLParserTests.m */,
 				0CD6419A1B847EC1000846BD /* IDZXMLParserExpatTests.m */,
+				0CD642691B8678D7000846BD /* IDZXMLParserLibXML2Tests.m */,
 				30719E9F1B7CA07000AE558F /* Supporting Files */,
 			);
 			path = IDZXMLParserTests;
@@ -377,6 +380,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0CD641991B847198000846BD /* IDZXMLParserCallLogger.m in Sources */,
+				0CD6426A1B8678D7000846BD /* IDZXMLParserLibXML2Tests.m in Sources */,
 				30719EA21B7CA07000AE558F /* IDZXMLParserTests.m in Sources */,
 				0CD6419B1B847EC1000846BD /* IDZXMLParserExpatTests.m in Sources */,
 				0CD6419E1B851409000846BD /* NSXMLParserTests.m in Sources */,

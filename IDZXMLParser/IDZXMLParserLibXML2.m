@@ -15,15 +15,17 @@
 
 @property (nonatomic, readonly) xmlParserCtxtPtr context;
 @property (nonatomic, assign) xmlDocPtr document;
-@property (nonatomic, readonly) FILE*      file;
+@property (nonatomic, readonly) NSInputStream *inputStream;
+@property (nonatomic, readwrite, strong) NSError* parserError;
 @end
 
 @implementation IDZXMLParserLibXML2
-@synthesize file = mFile;
+@synthesize inputStream = mInputStream;
 @synthesize context = mContext;
 @synthesize delegate = mDelegate;
 @synthesize document = mDocument;
 @synthesize shouldResolveExternalEntities = mShouldResolveExternalEntities;
+@synthesize parserError = mParserError;
 
 
 /*
@@ -194,12 +196,65 @@ xmlEntityPtr IDZSAX2GetParameterEntity(void *ctx, const xmlChar *name) {
     return NULL;
 }
 
+static NSString* IDZSAX2ModelToString(xmlElementContentPtr model, int level) {
+    NSMutableString *s = [[NSMutableString alloc] init];
+    switch(model->type) {
+        case XML_ELEMENT_CONTENT_PCDATA:
+            [s appendString:@"#PCDATA"];
+            break;
+        case XML_ELEMENT_CONTENT_ELEMENT:
+            [s appendString:IDZString(model->name)];
+            break;
+        case XML_ELEMENT_CONTENT_SEQ:
+            NSCAssert(model->c1 && model->c2, @"Element sequence node must have two children.");
+            if(model->c1 && model->c2) {
+                [s appendFormat:@"%@, %@", IDZSAX2ModelToString(model->c1, level+1),
+                 IDZSAX2ModelToString(model->c2, level+1)];
+            }
+            break;
+        case XML_ELEMENT_CONTENT_OR:
+            if(model->c1 && model->c2) {
+                [s appendFormat:@"%@ | %@", IDZSAX2ModelToString(model->c1, level+1),
+                 IDZSAX2ModelToString(model->c2, level+1)];
+            }
+            break;
+        default:
+            // This is unreachable unless a new element is added to xmlElementContentType
+            NSCAssert(NO, @"Unexpected type");
+    }
+    if(level == 0) {
+        s = [NSMutableString stringWithFormat:@"(%@)", s];
+    }
 
-
+    switch (model->ocur) {
+        case XML_ELEMENT_CONTENT_ONCE:
+            break;
+        case XML_ELEMENT_CONTENT_OPT:
+            [s appendString:@"?"];
+            break;
+        case XML_ELEMENT_CONTENT_MULT:
+            [s appendString:@"*"];
+            break;
+        case XML_ELEMENT_CONTENT_PLUS:
+            [s appendString:@"+"];
+            break;
+        default:
+            // This is unreachable unless a new element is added to xmlElementContentOccur
+            NSCAssert(NO, @"Unexpected quant");
+    }
+    return s;
+}
 
 
 void IDZSAX2ElementDecl(void *ctx, const xmlChar * name, int type,
                    xmlElementContentPtr content) {
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    NSString *elementName = IDZString(name);
+    NSString *model = IDZSAX2ModelToString(content, 0);
+    
+    if([parser.delegate respondsToSelector:@selector(parser:foundElementDeclarationWithName:model:)]) {
+        [parser.delegate parser:parser foundElementDeclarationWithName:elementName model:model];
+    }
     
 }
 
@@ -475,56 +530,96 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
 #define IDZ_LIBXML2_BUFSIZ (128*1024)
 
 
+#pragma mark - Initializers
+
 - (instancetype)initWithContentsOfURL:(NSURL *)url {
+    // Note: -[NSInputStream initWithURL:] does not handle remote URLs
+    NSData *data = [[NSData alloc] initWithContentsOfURL:url];
+    self = [self initWithData:data];
+    /** @TODO: Set base URL here */
+    return  self;
+}
+
+- (instancetype)initWithStream:(NSInputStream *)stream {
+    // For compatibility with NSXMLParser we delay this error until parse time
+    //    NSParameterAssert(stream);
     if(self = [super init]) {
-        mFile = fopen(url.fileSystemRepresentation, "r");
-        if(!mFile) {
-            return nil;
-        }
-        
-//        xmlSubstituteEntitiesDefault(1);
+        mInputStream = stream;
         xmlKeepBlanksDefault(0);
         
         xmlSAXHandler sax;
         IDZXMLSAXHandlerInit(&sax);
-        
-        NSString *fileName = url.path.lastPathComponent;
-        mContext = xmlCreatePushParserCtxt(&sax, (__bridge void*)self, NULL, 0, fileName.UTF8String);
+        mContext = xmlCreatePushParserCtxt(&sax, (__bridge void*)self, NULL, 0, NULL);
         if(!mContext) {
             return nil;
         }
-        
-        
-        
-        
     }
     return  self;
 }
+
+- (instancetype)initWithData:(NSData *)data {
+    // For compatibility with NSXMLParser we delay this error until parse time
+    //    NSParameterAssert(data);
+    NSInputStream *inputStream = data ? [[NSInputStream alloc] initWithData:data] : nil;
+    self = [self initWithStream:inputStream];
+    return self;
+}
+
 
 - (void)setDelegate:(id<IDZXMLParserDelegate>)delegate {
     mDelegate = delegate;
 }
 
+
 - (BOOL)parse {
+    if(!self.inputStream)
+    {
+        self.parserError = [NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:nil];
+        return NO;
+    }
     char buffer[IDZ_LIBXML2_BUFSIZ];
-    while(1) {
+    [self.inputStream open];
+    if(self.inputStream.streamError)
+    {
+        NSLog(@"%s:%d: WARNING: Stream error", __FILE__, __LINE__);
+    }
+    
+    // Need this here to avoid calling parserDidStartDocument if input is empty
+    NSInteger nBytes = [self.inputStream read:(uint8_t*)buffer maxLength:IDZ_LIBXML2_BUFSIZ];
+    if(nBytes == 0)
+    {
+        self.parserError = [NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:nil];
+        return NO;
+    }
+    if([self.delegate respondsToSelector:@selector(parserDidStartDocument:)])
+    {
+        [self.delegate parserDidStartDocument:self];
+    }
+    int result = XML_ERR_OK;
+    
+    do {
         @autoreleasepool {
-            size_t nBytes = (int)fread(buffer, 1, IDZ_LIBXML2_BUFSIZ,  self.file);
-            // Return is one of http://www.xmlsoft.org/html/libxml-xmlerror.html#xmlParserErrors
-            int result = xmlParseChunk(self.context, buffer, (int)nBytes, nBytes == 0);
-            if(result != XML_ERR_OK)
+            result = xmlParseChunk(self.context, buffer, (int)nBytes, nBytes == 0);
+            if(result != XML_ERR_OK || nBytes == 0)
+                break;
+            nBytes = [self.inputStream read:(uint8_t*)buffer maxLength:IDZ_LIBXML2_BUFSIZ];
+            if(nBytes < 0)
             {
-                NSLog(@"Parse error (Code: %d)", result);
-                return NO;
-            }
-            if(nBytes == 0) {
-                NSLog(@"Parsing complete normally");
+                result = XML_IO_UNKNOWN;
                 break;
             }
         }
+    } while(1);
+    
+    [self.inputStream close];
+    if([self.delegate respondsToSelector:@selector(parserDidEndDocument:)])
+    {
+        [self.delegate parserDidEndDocument:self];
     }
-    return YES;
+    return (result == XML_ERR_OK);
 }
+
+
 
 - (NSInteger)lineNumber {
     // Although the prototype of this is void* it is expecting
