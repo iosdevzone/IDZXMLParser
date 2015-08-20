@@ -1,0 +1,25 @@
+PODS:
+  - DiffMatchPatch (0.1.2)
+  - expat (2.1)
+  - IDZDelegateLogger (0.1.0):
+    - IDZInvocation (~> 0.1.0)
+  - IDZInvocation (0.1.0)
+  - NVHTarGzip (1.0.1)
+  - tarkit (0.1.3)
+
+DEPENDENCIES:
+  - DiffMatchPatch (~> 0.1.2)
+  - expat
+  - IDZDelegateLogger (~> 0.1.0)
+  - NVHTarGzip (~> 1.0)
+  - tarkit (~> 0.1)
+
+SPEC CHECKSUMS:
+  DiffMatchPatch: a78deff39cf0407fce99758d496fe1d4d5497459
+  expat: 4cca2d53af2e3ac99ded76dd6daa8cc618fc627b
+  IDZDelegateLogger: 7b8f0005cfb6eaff1b21b24297fc2b6286b8068d
+  IDZInvocation: ae1f524aaf07a0820266744fee6cf41195b8087d
+  NVHTarGzip: 74cc227b902e5725900d37eb6d79b57e93005a73
+  tarkit: 5f924f8d5979fcbd14024f4b748c2cb4762f4c20
+
+COCOAPODS: 0.38.2
