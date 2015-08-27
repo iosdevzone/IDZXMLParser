@@ -55,9 +55,11 @@
 - (void)parser:(id<IDZXMLParser>)parser foundIgnorableWhitespace:(NSString *)whitespaceString;
 
 - (void)parser:(id<IDZXMLParser>)parser foundComment:(NSString *)comment;
-//Old
 
-@optional
+- (void)parser:(id<IDZXMLParser>)parser parseErrorOccurred:(NSError *)parseError;
+- (NSData *)parser:(NSXMLParser *)parser resolveExternalEntityName:(NSString *)name systemID:(NSString *)systemID;
+
+
 - (void)parser:(id<IDZXMLParser>)parser defaultHandler:(NSString*)string;
 
 

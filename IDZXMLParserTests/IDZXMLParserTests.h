@@ -9,6 +9,10 @@
 #import <IDZXMLParser/IDZXMLParser.h>
 #import "IDZDelegateLogger.h"
 
+
+@interface ExternalEntityDelegate : NSObject<IDZXMLParserDelegate>
+@end
+
 extern BOOL verbose;
 /**
  * Macros to stringify inplace XML.
@@ -63,6 +67,9 @@ extern BOOL verbose;
 - (void)trivialValidWFCharacters;
 - (void)trivialValidWFComment;
 
+- (void)localExternal;
+
 @end
+
 
 

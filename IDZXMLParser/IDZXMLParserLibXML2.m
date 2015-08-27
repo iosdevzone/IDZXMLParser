@@ -9,6 +9,7 @@
 #import "IDZXMLParserLibXML2.h"
 #import <libxml/SAX2.h>
 #import <libxml/parser.h>
+#import <libxml/uri.h>
 //#import "SwiftJPDict-Swift.h"
 
 @interface IDZXMLParserLibXML2 ()
@@ -27,113 +28,7 @@
 @synthesize shouldResolveExternalEntities = mShouldResolveExternalEntities;
 @synthesize parserError = mParserError;
 
-
-/*
- XMLPUBFUN xmlParserCtxtPtr XMLCALL
- xmlCreatePushParserCtxt(xmlSAXHandlerPtr sax,
- void *user_data,
- const char *chunk,
- int size,
- const char *filename);
- XMLPUBFUN int XMLCALL
- xmlParseChunk		(xmlParserCtxtPtr ctxt,
- const char *chunk,
- int size,
- int terminate);
- */
-
 #define IDZ_BUFSIZ (16*1024)
-
-//typedef struct IDZXMlParserContextTag {
-//    void *delegate;
-//    xmlDocPtr document;
-//    xmlParserCtxtPtr context;
-//} IDZXMLParserContext;
-
-//xmlEntitiesTablePtr pEntities = NULL;
-//
-//static void
-//print_element_names(xmlNode * a_node)
-//{
-//    xmlNode *cur_node = NULL;
-//    
-//    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
-//        if (cur_node->type == XML_ELEMENT_NODE) {
-//            if(strcmp((const char *)cur_node->name, "pos") == 0) {
-//                if(cur_node->children) {
-//                    printf("node type: Element, name: %s content: %s child_type:%d child_name:%s child_context:%s\n",
-//                           cur_node->name,
-//                           cur_node->content,
-//                           cur_node->children->type,
-//                           cur_node->children->name,
-//                           cur_node->children->content);
-//                }
-//                else {
-//                    printf("node type: Element, name: %s content: %s\n",
-//                           cur_node->name,
-//                           cur_node->content);
-//                }
-//            }
-//        }
-//        
-//        print_element_names(cur_node->children);
-//    }
-//}
-//
-//void startDocument(void *ctxt) {
-//    NSLog(@"startDocument");
-//    
-//}
-//
-//void endDocument(void *ctxt) {
-//    NSLog(@"endDocument");
-//}
-//void startElement(void *ctx, const xmlChar *fullname, const xmlChar **atts) {
-//    NSLog(@"startElement");
-//    
-//}
-//
-//void endElement(void *ctx, const xmlChar *name) {
-//    NSLog(@"endElement");
-//    
-//}
-//
-//void entityDecl(void *ctx, const xmlChar *name, int type, const xmlChar *publicId, const xmlChar *systemId, xmlChar *content)
-//{
-//    NSLog(@"entityDecl %s %d %s %s %s",
-//          name, type, publicId, systemId, content);
-//    if(!pEntities) {
-//        pEntities = xmlCreateEntitiesTable();
-//    }
-//    IDZXMLParserContext *pContext = (IDZXMLParserContext *)ctx;
-//    xmlParserCtxt *pCtxt = pContext->context;
-//    xmlAddDocEntity(pContext->document, name, type, publicId, systemId, content);
-//    
-//    
-//    
-//}
-//
-//xmlEntityPtr getEntity(void *ctx,
-//                       const xmlChar *name) {
-//    IDZXMLParserContext *pContext = (IDZXMLParserContext *)ctx;
-//    xmlParserCtxt *pCtxt = pContext->context;
-//    return xmlGetDocEntity(pContext->document, name);
-//    
-//}
-//
-//
-//
-//
-//
-//void error (void *ctx,
-//            const char *msg, ...) {
-//    char buffer[1024];
-//    va_list args;
-//    va_start(args, msg);
-//    vsprintf(buffer, msg, args);
-//    va_end(args);
-//    NSLog(@"ERROR: %s", buffer);
-//}
 
 #pragma mark - SAX2 Handlers
 
@@ -152,48 +47,48 @@ static NSString* IDZString2(const xmlChar* pString, NSInteger length) {
 
 
 int IDZSAX2IsStandalone(void *ctx) {
-    return 0;
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    return xmlSAX2IsStandalone(parser.context);
 }
 
 int IDZSAX2HasInternalSubset(void *ctx) {
-    return 0;
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    return IDZSAX2HasInternalSubset(parser.context);
 }
 
-/* 
- * The SAX2 implementation of this in libxml2 creates a nested 
- * parser and calls it to parse the external file.
- */
 int IDZSAX2HasExternalSubset(void *ctx) {
-    return 0;
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    return IDZSAX2HasExternalSubset(parser.context);
 }
 
 void IDZSAX2InternalSubset(void *ctx, const xmlChar *name,
-                      const xmlChar *ExternalID, const xmlChar *SystemID) {
+                      const xmlChar *ExternalID, const xmlChar *SystemID)
+{
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    xmlCreateIntSubset(parser.document, name, ExternalID, SystemID);
-    
+    xmlSAX2InternalSubset(parser.context, name, ExternalID, SystemID);
 }
 
 void IDZSAX2ExternalSubset(void *ctx, const xmlChar *name,
                            const xmlChar *ExternalID, const xmlChar *SystemID)
 {
-//    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    NSLog(@"IDZSAX2ExternalSubset %s external=%s system=%s",
-          name, ExternalID, SystemID);
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    xmlSAX2ExternalSubset(parser.context, name, ExternalID, SystemID);
 }
 
-xmlParserInputPtr IDZSAX2ResolveEntity(void *ctx, const xmlChar *publicId, const xmlChar *systemId) {
-    return NULL;
+xmlParserInputPtr IDZSAX2ResolveEntity(void *ctx, const xmlChar *publicId, const xmlChar *systemId)
+{
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    return xmlSAX2ResolveEntity(ctx, publicId, systemId);
 }
 
 xmlEntityPtr IDZSAX2GetEntity(void *ctx, const xmlChar *name) {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    xmlEntityPtr pEntity = xmlGetDocEntity(parser.document, name);
-    return pEntity ? pEntity : xmlGetPredefinedEntity(name);
+    return xmlSAX2GetEntity(parser.context, name);
 }
 
 xmlEntityPtr IDZSAX2GetParameterEntity(void *ctx, const xmlChar *name) {
-    return NULL;
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    return xmlSAX2GetParameterEntity(ctx, name);
 }
 
 static NSString* IDZSAX2ModelToString(xmlElementContentPtr model, int level) {
@@ -273,12 +168,6 @@ void IDZSAX2SetDocumentLocator(void *ctx ATTRIBUTE_UNUSED, xmlSAXLocatorPtr loc 
     
 }
 
-
-
-
-
-
-
 void IDZSAX2CDataBlock(void *ctx, const xmlChar *value, int len) {
     
 }
@@ -287,10 +176,6 @@ void IDZSAX2ProcessingInstruction(void *ctx, const xmlChar *target,
                              const xmlChar *data) {
     
 }
-
-
-
-
 
 void IDZParserError(void *ctx, const char *msg, ...) {
     char buffer[1024];
@@ -416,7 +301,8 @@ void IDZSAX2EndElementNs(void *ctx,
 void IDZSAX2EntityDecl(void *ctx, const xmlChar *name, int type,
                        const xmlChar *publicId, const xmlChar *systemId, xmlChar *content) {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    xmlAddDocEntity(parser.document, name, type, publicId, systemId, content);
+    //xmlAddDocEntity(parser.document, name, type, publicId, systemId, content);
+    xmlSAX2EntityDecl(parser.context, name, type, publicId, systemId, content);
     switch(type) {
         case XML_INTERNAL_GENERAL_ENTITY:
             if([parser.delegate respondsToSelector:@selector(parser:foundInternalEntityDeclarationWithName:value:)]) {
@@ -439,28 +325,20 @@ void IDZSAX2EntityDecl(void *ctx, const xmlChar *name, int type,
 
 void IDZSAX2StartDocument(void *ctx) {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    parser.document = xmlNewDoc(parser.context->version);
+    //parser.document = xmlNewDoc(parser.context->version);
+    xmlSAX2StartDocument(parser.context);
     
 }
 
 void IDZSAX2EndDocument(void *ctx) {
-    
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    xmlSAX2EndDocument(parser.context);
 }
 
 void IDZSAX2Characters(void *ctx, const xmlChar *ch, int len) {
     NSString *characters = [[NSString alloc] initWithBytes:ch length:len encoding:NSUTF8StringEncoding];
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    /*
-     * If the delegate has defined a foundReference method then we want to suppress 
-     * enitity expansion and call this. 
-     * I could not find a way to suppress entity expansion in libxml2. It seems like
-     * it always performs it (i.e. it recursivelu calls charaters then reference).
-     *
-     * When it is performing entity expansion the depth of the context always (seems) to 
-     * be greater than 0. This leads to the slightly ugly code below.
-     */
-    if([parser.delegate respondsToSelector:@selector(parser:foundCharacters:)] &&
-       (parser.context->depth == 0 || ![parser.delegate respondsToSelector:@selector(parser:foundReference:)])) {
+    if((parser.context->depth == 0) && [parser.delegate respondsToSelector:@selector(parser:foundCharacters:)]) {
         [parser.delegate parser:parser foundCharacters:characters];
     }
 }
@@ -536,7 +414,7 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
     // Note: -[NSInputStream initWithURL:] does not handle remote URLs
     NSData *data = [[NSData alloc] initWithContentsOfURL:url];
     self = [self initWithData:data];
-    /** @TODO: Set base URL here */
+    mContext->input->filename = (char *)xmlCanonicPath((const xmlChar*)url.path.UTF8String);
     return  self;
 }
 
@@ -552,6 +430,7 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
         mContext = xmlCreatePushParserCtxt(&sax, (__bridge void*)self, NULL, 0, NULL);
         if(!mContext) {
             return nil;
+            
         }
     }
     return  self;
@@ -565,11 +444,7 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
     return self;
 }
 
-
-- (void)setDelegate:(id<IDZXMLParserDelegate>)delegate {
-    mDelegate = delegate;
-}
-
+#pragma mark - Parsing
 
 - (BOOL)parse {
     if(!self.inputStream)
@@ -619,12 +494,22 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
     return (result == XML_ERR_OK);
 }
 
+#pragma mark - Properties
 
+- (void)setDelegate:(id<IDZXMLParserDelegate>)delegate {
+    mDelegate = delegate;
+}
 
 - (NSInteger)lineNumber {
     // Although the prototype of this is void* it is expecting
     // an xmlParserCtxPtr
     return xmlSAX2GetLineNumber(self.context);
+}
+
+- (void)setShouldResolveExternalEntities:(BOOL)shouldResolveExternalEntities
+{
+    mShouldResolveExternalEntities = shouldResolveExternalEntities;
+    mContext->replaceEntities = shouldResolveExternalEntities ? YES : NO;
 }
 
 @end

@@ -199,7 +199,9 @@ static void IDZXMLParserExpatDefault(void *userData, const XML_Char* s, int len)
     }
     
     NSCAssert(parser.delegate, @"Delegate is not nil.");
-    [parser.delegate parser:parser defaultHandler:string];
+    if([parser.delegate respondsToSelector:@selector(parser:defaultHandler:)]) {
+        [parser.delegate parser:parser defaultHandler:string];
+    }
 }
 
 static void IDZXMLParserExpatCharacterData(void *userData, const XML_Char* s, int len) {
@@ -365,7 +367,8 @@ static void IDZXMLParserExpatProcessingInstruction(
 
 - (void)setDelegate:(id<IDZXMLParserDelegate>)delegate {
     mDelegate = delegate;
-    if([delegate respondsToSelector:@selector(parser:defaultHandler:)]) {
+    if([delegate respondsToSelector:@selector(parser:defaultHandler:)] ||
+       [delegate respondsToSelector:@selector(parser:foundReference:)]) {
         XML_SetDefaultHandler(self.parser, IDZXMLParserExpatDefault);
     }
     if([delegate respondsToSelector:@selector(parser:foundCharacters:)]) {
@@ -405,7 +408,11 @@ static void IDZXMLParserExpatProcessingInstruction(
         XML_SetEntityDeclHandler(self.parser, IDZXMLParserExpatEntityDecl);
     }
     
-    XML_SetProcessingInstructionHandler(self.parser, IDZXMLParserExpatProcessingInstruction);
+    if([delegate respondsToSelector:@selector(parser:foundProcessingInstructionWithTarget:data:)]) {
+        XML_SetProcessingInstructionHandler(self.parser, IDZXMLParserExpatProcessingInstruction);
+    }
+    
+    
     
     
        

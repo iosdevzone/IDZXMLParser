@@ -17,9 +17,52 @@
 
 BOOL verbose = YES;
 
+@implementation ExternalEntityDelegate
 
+//- (BOOL)respondsToSelector:(SEL)aSelector
+//{
+//    NSLog(@"respondsToSelector: %@", NSStringFromSelector(aSelector));
+//    return [super respondsToSelector:aSelector];
+//}
+
+- (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict{
+    NSLog(@"startElement: %@", elementName);
+}
+
+- (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName
+{
+    NSLog(@"endElement: %@", elementName);
+}
+
+- (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
+{
+    NSLog(@"foundCharacter: %@", string);
+}
+
+- (void)parser:(NSXMLParser *)parser foundReference:(NSString *)string
+{
+    NSLog(@"foundReference: %@", string);
+}
+
+- (void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError {
+    NSLog(@"parseErrorOccurred:%@", parseError);
+}
+
+//- (NSData*)parser:(NSXMLParser *)parser resolveExternalEntityName:(NSString *)name systemID:(NSString *)systemID
+//{
+//    NSString *fizzbuzz = @"fizzbuzz";
+//    return [fizzbuzz dataUsingEncoding:NSUTF8StringEncoding];
+//}
+
+@end
 
 @implementation IDZDelegateLogger (IDZXMLParserTestsAdditions)
+
+//- (void)forwardInvocation:(NSInvocation *)anInvocation
+//{
+//    NSLog(@"Forwarding %@", NSStringFromSelector(anInvocation.selector));
+//    [super forwardInvocation:anInvocation];
+//}
 
 - (SEL)selectorAtIndex:(NSInteger)index
 {
@@ -261,15 +304,40 @@ BOOL verbose = YES;
      IDZEndDocument, @[ parser ],
      nil];
     
-    XCTAssert(result && !error, @"Parser should complete succesfully withour error");
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
     XCTAssert(result, @"Parser should complete succesfully withour error");
 }
 
-
-
-
-
-
+#pragma mark - External Entities
+/**
+ * Tests that a simple local entity can be expanded by the parser.
+ * This requires that shouldResolveExternalEntities be YES.
+ */
+- (void)localExternal
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    BOOL result = [parser parse];
+    [delegate dump];
+    NSError *error = parser.parserError;
+    [self assertInvocations:delegate.invocations match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     @selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
 
 
 @end
+
+

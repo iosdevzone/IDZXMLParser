@@ -12,6 +12,7 @@
 #import "IDZXMLParserCallLogger.h"
 #import "IDZXMLParserTests.h"
 
+
 @interface IDZXMLParserLibXML2Tests : IDZXMLParserTests
 
 @end
@@ -104,20 +105,7 @@
     [self trivialValidWFCharacters];
 }
 
-- (void)testDefinedEntity
-{
-    const char* content = IDZXML(
-                                 <?xml version="1.0" standalone="yes" ?>
-                                 <!DOCTYPE foo [<!ENTITY bar "Johnnie Fox's">]>
-                                 <foo>
-                                 Entity expansion test begin &bar; end.
-                                 </foo>);
-    id<IDZXMLParser> parser = [self parserForCString:content];
-    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
-    parser.delegate = delegate;
-    BOOL result = [parser parse];
-    [delegate dump];
-}
+
 
 - (void)testDefinedElement
 {
@@ -164,5 +152,49 @@
     
 }
 
+//- (void) testProbeExternal
+//{
+//    [super probeExteral];
+//}
+
+- (void)testProbeExternal
+{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *filePath = [[paths[0] stringByAppendingPathComponent:@"xmlconf"] stringByAppendingPathComponent:@"xmlconf.xml"];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSAssert([fileManager fileExistsAtPath:filePath], @"Test file exists");
+    NSURL *url = [[NSURL alloc] initFileURLWithPath:filePath];
+    IDZXMLParserLibXML2 *parser = [[IDZXMLParserLibXML2 alloc] initWithContentsOfURL:url];
+    parser.shouldResolveExternalEntities = YES;
+//    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
+    ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    XCTAssert(result, @"Parser completed successfully (%@)", parser.parserError);
+    //[delegate dump];
+}
+
+#pragma mark - Internal Entities
+
+- (void)testDefinedEntity
+{
+    const char* content = IDZXML(
+                                 <?xml version="1.0" standalone="yes" ?>
+                                 <!DOCTYPE foo [<!ENTITY bar "Johnnie Fox's">]>
+                                 <foo>
+                                 Entity expansion test begin &bar; end.
+                                 </foo>);
+    id<IDZXMLParser> parser = [self parserForCString:content];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    [delegate dump];
+}
+
+#pragma makr - External Entities
+- (void)testLocalExternal
+{
+    [self localExternal];
+}
 
 @end

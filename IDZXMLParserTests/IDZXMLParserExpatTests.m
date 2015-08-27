@@ -159,5 +159,23 @@
     
 }
 
+- (void)testProbeExternal
+{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *filePath = [[paths[0] stringByAppendingPathComponent:@"xmlconf"] stringByAppendingPathComponent:@"xmlconf.xml"];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSAssert([fileManager fileExistsAtPath:filePath], @"Test file exists");
+    NSURL *url = [[NSURL alloc] initFileURLWithPath:filePath];
+    IDZXMLParserExpat *parser = [[IDZXMLParserExpat alloc] initWithContentsOfURL:url];
+    //parser.shouldResolveExternalEntities = YES;
+    //    parser.shouldResolveExternalEntities = YES;
+    //    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
+    ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    XCTAssert(result, @"Parser completed successfully (%@)", parser.parserError);
+    //[delegate dump];
+}
+
 
 @end
