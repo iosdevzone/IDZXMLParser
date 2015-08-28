@@ -79,12 +79,29 @@ void IDZSAX2ExternalSubset(void *ctx, const xmlChar *name,
 xmlParserInputPtr IDZSAX2ResolveEntity(void *ctx, const xmlChar *publicId, const xmlChar *systemId)
 {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    return xmlSAX2ResolveEntity(ctx, publicId, systemId);
+    switch (parser.externalEntityResolvingPolicy) {
+        case NSXMLParserResolveExternalEntitiesNever:
+            if([parser.delegate respondsToSelector:@selector(parser:resolveExternalEntityName:systemID:)])
+            {
+                NSData *data = [parser.delegate parser:parser resolveExternalEntityName:IDZString(publicId) systemID:IDZString(systemId)];
+            }
+            break;
+        case NSXMLParserResolveExternalEntitiesSameOriginOnly:
+            NSCAssert(NO, @"NSXMLParserResolveExternalEntitiesSameOriginOnly is implemented");
+        case NSXMLParserResolveExternalEntitiesAlways:
+        case NSXMLParserResolveExternalEntitiesNoNetwork:
+            return xmlSAX2ResolveEntity(ctx, publicId, systemId);
+        default:
+            NSCAssert(NO, @"Value of externalEntityResolvingPolicy is valid (%d)", (int)parser.externalEntityResolvingPolicy);
+            break;
+    }
+    return NULL;
 }
 
 xmlEntityPtr IDZSAX2GetEntity(void *ctx, const xmlChar *name) {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    return xmlSAX2GetEntity(parser.context, name);
+    xmlEntityPtr entity = xmlSAX2GetEntity(parser.context, name);
+    return entity;
 }
 
 xmlEntityPtr IDZSAX2GetParameterEntity(void *ctx, const xmlChar *name) {

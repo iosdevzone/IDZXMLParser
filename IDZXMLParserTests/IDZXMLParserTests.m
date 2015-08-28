@@ -269,22 +269,22 @@ BOOL verbose = YES;
                 invocation = invocations[idx++];
             }
         }
-        XCTAssertEqual(selector, invocation.selector);
-        
-        
-        
+        // The error message from this is too hard to visually parse
+        //XCTAssertEqual(selector, invocation.selector);
+        // Converting to strings is easier...
         XCTAssertEqualObjects(NSStringFromSelector(selector), NSStringFromSelector(invocation.selector), @"Expected %@ Got %@",
                               
                               NSStringFromSelector(selector),
                               NSStringFromSelector(invocation.selector));
         
-        //XCTAssert(invocation.selector == selector);
-        if(arguments && arguments.count > 0) {
-            XCTAssert(arguments.count <= invocation.arguments.count);
-            [arguments enumerateObjectsUsingBlock:^(NSArray *obj, NSUInteger idx, BOOL *stop) {
-                //XCTAssert([obj isEqual:invocation.arguments[idx]]);
-                XCTAssertEqualObjects(obj, invocation.arguments[idx]);
-            }];
+        if(invocation.selector == selector) {
+            if(arguments && arguments.count > 0) {
+                XCTAssert(arguments.count <= invocation.arguments.count);
+                [arguments enumerateObjectsUsingBlock:^(NSArray *obj, NSUInteger idx, BOOL *stop) {
+                    //XCTAssert([obj isEqual:invocation.arguments[idx]]);
+                    XCTAssertEqualObjects(obj, invocation.arguments[idx]);
+                }];
+            }
         }
         selector = va_arg(args, SEL);
     }
@@ -387,7 +387,7 @@ BOOL verbose = YES;
     parser.shouldResolveExternalEntities = YES;
     XCTAssert(parser.externalEntityResolvingPolicy == NSXMLParserResolveExternalEntitiesNever);
     BOOL result = [parser parse];
-    //[delegate dump];
+    [delegate dump];
     NSError *error = parser.parserError;
     [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
      IDZStartDocument, @[ parser ],
