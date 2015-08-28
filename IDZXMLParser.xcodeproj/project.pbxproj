@@ -7,16 +7,24 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C12B3AC1B8BE83F00B18B61 /* NSXMLParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C12B3AB1B8BE83F00B18B61 /* NSXMLParserTests.m */; };
+		0C12B3AD1B8BE85A00B18B61 /* libxml2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0CD643781B8BE24B000846BD /* libxml2.framework */; };
 		0CD641971B846D0D000846BD /* IDZXMLParserProtocols.h in Headers */ = {isa = PBXBuildFile; fileRef = 0CD641961B846D09000846BD /* IDZXMLParserProtocols.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0CD641991B847198000846BD /* IDZXMLParserCallLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 30719EAC1B7CA0B400AE558F /* IDZXMLParserCallLogger.m */; };
 		0CD6419B1B847EC1000846BD /* IDZXMLParserExpatTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CD6419A1B847EC1000846BD /* IDZXMLParserExpatTests.m */; };
-		0CD6419E1B851409000846BD /* NSXMLParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CD6419D1B851409000846BD /* NSXMLParserTests.m */; };
 		0CD641A01B85363D000846BD /* empty.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0CD6419F1B85363D000846BD /* empty.xml */; };
 		0CD6426A1B8678D7000846BD /* IDZXMLParserLibXML2Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CD642691B8678D7000846BD /* IDZXMLParserLibXML2Tests.m */; };
+<<<<<<< HEAD
+		0CD643791B8BE273000846BD /* libxml2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0CD643781B8BE24B000846BD /* libxml2.framework */; };
+		0CF37E201B8CFE360085289B /* author.dtd in Resources */ = {isa = PBXBuildFile; fileRef = 0CF37E1F1B8CFE360085289B /* author.dtd */; };
+		0CF37E221B8CFE7D0085289B /* local_external.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0CF37E211B8CFE7D0085289B /* local_external.xml */; };
+		0CF37E241B8E44BD0085289B /* remote_external.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0CF37E231B8E44BD0085289B /* remote_external.xml */; };
+=======
 		0CF37E251B8FC8690085289B /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 30719ECD1B7CA1F900AE558F /* libxml2.dylib */; };
 		0CF37E2F1B8FCA910085289B /* author.dtd in Resources */ = {isa = PBXBuildFile; fileRef = 0CF37E2C1B8FCA910085289B /* author.dtd */; };
 		0CF37E301B8FCA910085289B /* local_external.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0CF37E2D1B8FCA910085289B /* local_external.xml */; };
 		0CF37E311B8FCA910085289B /* remote_external.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0CF37E2E1B8FCA910085289B /* remote_external.xml */; };
+>>>>>>> a137d8de509de27f5710bac045f653ce5e927cda
 		30719E951B7CA07000AE558F /* IDZXMLParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 30719E941B7CA07000AE558F /* IDZXMLParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		30719E9B1B7CA07000AE558F /* IDZXMLParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30719E8F1B7CA07000AE558F /* IDZXMLParser.framework */; };
 		30719EA21B7CA07000AE558F /* IDZXMLParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 30719EA11B7CA07000AE558F /* IDZXMLParserTests.m */; };
@@ -28,13 +36,33 @@
 		30719EBC1B7CA0B400AE558F /* IDZXMLParserLibXML2.m in Sources */ = {isa = PBXBuildFile; fileRef = 30719EB21B7CA0B400AE558F /* IDZXMLParserLibXML2.m */; };
 		30719EBD1B7CA0B400AE558F /* IDZXMLParserNS.h in Headers */ = {isa = PBXBuildFile; fileRef = 30719EB31B7CA0B400AE558F /* IDZXMLParserNS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		30719EBE1B7CA0B400AE558F /* IDZXMLParserNS.m in Sources */ = {isa = PBXBuildFile; fileRef = 30719EB41B7CA0B400AE558F /* IDZXMLParserNS.m */; };
-		30719ECE1B7CA1F900AE558F /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 30719ECD1B7CA1F900AE558F /* libxml2.dylib */; };
 		308ADBDF1B7CAF7200D5EA24 /* xmlts20130923.tar.gz in Resources */ = {isa = PBXBuildFile; fileRef = 308ADBDE1B7CAF7200D5EA24 /* xmlts20130923.tar.gz */; };
 		5E06194CA26E6F9F1A9955B8 /* libPods-IDZXMLParser.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB85A17F3901E7A62968847 /* libPods-IDZXMLParser.a */; };
 		CB38EDE47CAEE7DAD64E33E9 /* libPods-IDZXMLParserTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 865D8E19E7EDA6EB0B3A786E /* libPods-IDZXMLParserTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0CD643771B8BE24B000846BD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0CD643731B8BE24B000846BD /* libxml2-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0CD643291B8BDE26000846BD;
+			remoteInfo = libxml2;
+		};
+		0CD6437A1B8BE2F4000846BD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0CD643731B8BE24B000846BD /* libxml2-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0CD643281B8BDE26000846BD;
+			remoteInfo = libxml2;
+		};
+		0CD6437C1B8BE2FF000846BD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0CD643731B8BE24B000846BD /* libxml2-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0CD643281B8BDE26000846BD;
+			remoteInfo = libxml2;
+		};
 		30719E9C1B7CA07000AE558F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 30719E861B7CA07000AE558F /* Project object */;
@@ -45,15 +73,22 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0C12B3AB1B8BE83F00B18B61 /* NSXMLParserTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParserTests.m; sourceTree = "<group>"; };
 		0CD641961B846D09000846BD /* IDZXMLParserProtocols.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDZXMLParserProtocols.h; sourceTree = "<group>"; };
 		0CD6419A1B847EC1000846BD /* IDZXMLParserExpatTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDZXMLParserExpatTests.m; sourceTree = "<group>"; };
 		0CD6419C1B8513A8000846BD /* IDZXMLParserTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDZXMLParserTests.h; sourceTree = "<group>"; };
-		0CD6419D1B851409000846BD /* NSXMLParserTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSXMLParserTests.m; sourceTree = "<group>"; };
 		0CD6419F1B85363D000846BD /* empty.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = empty.xml; sourceTree = "<group>"; };
 		0CD642691B8678D7000846BD /* IDZXMLParserLibXML2Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDZXMLParserLibXML2Tests.m; sourceTree = "<group>"; };
+<<<<<<< HEAD
+		0CD643731B8BE24B000846BD /* libxml2-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "libxml2-ios.xcodeproj"; path = "../../libs/libxml2/libxml2/libxml2-ios.xcodeproj"; sourceTree = "<group>"; };
+		0CF37E1F1B8CFE360085289B /* author.dtd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = author.dtd; sourceTree = "<group>"; };
+		0CF37E211B8CFE7D0085289B /* local_external.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = local_external.xml; sourceTree = "<group>"; };
+		0CF37E231B8E44BD0085289B /* remote_external.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = remote_external.xml; sourceTree = "<group>"; };
+=======
 		0CF37E2C1B8FCA910085289B /* author.dtd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = author.dtd; sourceTree = "<group>"; };
 		0CF37E2D1B8FCA910085289B /* local_external.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = local_external.xml; sourceTree = "<group>"; };
 		0CF37E2E1B8FCA910085289B /* remote_external.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = remote_external.xml; sourceTree = "<group>"; };
+>>>>>>> a137d8de509de27f5710bac045f653ce5e927cda
 		0F4D0371C21316740CB2471E /* Pods-IDZXMLParserTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IDZXMLParserTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-IDZXMLParserTests/Pods-IDZXMLParserTests.debug.xcconfig"; sourceTree = "<group>"; };
 		30719E8F1B7CA07000AE558F /* IDZXMLParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = IDZXMLParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		30719E931B7CA07000AE558F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -71,7 +106,6 @@
 		30719EB21B7CA0B400AE558F /* IDZXMLParserLibXML2.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDZXMLParserLibXML2.m; sourceTree = "<group>"; };
 		30719EB31B7CA0B400AE558F /* IDZXMLParserNS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDZXMLParserNS.h; sourceTree = "<group>"; };
 		30719EB41B7CA0B400AE558F /* IDZXMLParserNS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDZXMLParserNS.m; sourceTree = "<group>"; };
-		30719ECD1B7CA1F900AE558F /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		308ADBDE1B7CAF7200D5EA24 /* xmlts20130923.tar.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = xmlts20130923.tar.gz; sourceTree = "<group>"; };
 		3E809CB45FFD91FAC97038AB /* Pods-IDZXMLParser.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IDZXMLParser.release.xcconfig"; path = "Pods/Target Support Files/Pods-IDZXMLParser/Pods-IDZXMLParser.release.xcconfig"; sourceTree = "<group>"; };
 		3EA6BFEB1A7B67B73FE86F10 /* Pods-IDZXMLParser.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IDZXMLParser.debug.xcconfig"; path = "Pods/Target Support Files/Pods-IDZXMLParser/Pods-IDZXMLParser.debug.xcconfig"; sourceTree = "<group>"; };
@@ -85,7 +119,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				30719ECE1B7CA1F900AE558F /* libxml2.dylib in Frameworks */,
+				0CD643791B8BE273000846BD /* libxml2.framework in Frameworks */,
 				5E06194CA26E6F9F1A9955B8 /* libPods-IDZXMLParser.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -94,7 +128,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
+				0C12B3AD1B8BE85A00B18B61 /* libxml2.framework in Frameworks */,
+=======
 				0CF37E251B8FC8690085289B /* libxml2.dylib in Frameworks */,
+>>>>>>> a137d8de509de27f5710bac045f653ce5e927cda
 				30719E9B1B7CA07000AE558F /* IDZXMLParser.framework in Frameworks */,
 				CB38EDE47CAEE7DAD64E33E9 /* libPods-IDZXMLParserTests.a in Frameworks */,
 			);
@@ -103,10 +141,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0CD643741B8BE24B000846BD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0CD643781B8BE24B000846BD /* libxml2.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		30719E851B7CA07000AE558F = {
 			isa = PBXGroup;
 			children = (
-				30719ECD1B7CA1F900AE558F /* libxml2.dylib */,
+				0CD643731B8BE24B000846BD /* libxml2-ios.xcodeproj */,
 				30719E911B7CA07000AE558F /* IDZXMLParser */,
 				30719E9E1B7CA07000AE558F /* IDZXMLParserTests */,
 				30719E901B7CA07000AE558F /* Products */,
@@ -153,11 +199,11 @@
 		30719E9E1B7CA07000AE558F /* IDZXMLParserTests */ = {
 			isa = PBXGroup;
 			children = (
+				0C12B3AB1B8BE83F00B18B61 /* NSXMLParserTests.m */,
 				0CD6419C1B8513A8000846BD /* IDZXMLParserTests.h */,
 				30719EA11B7CA07000AE558F /* IDZXMLParserTests.m */,
 				30719EAB1B7CA0B400AE558F /* IDZXMLParserCallLogger.h */,
 				30719EAC1B7CA0B400AE558F /* IDZXMLParserCallLogger.m */,
-				0CD6419D1B851409000846BD /* NSXMLParserTests.m */,
 				0CD6419A1B847EC1000846BD /* IDZXMLParserExpatTests.m */,
 				0CD642691B8678D7000846BD /* IDZXMLParserLibXML2Tests.m */,
 				30719E9F1B7CA07000AE558F /* Supporting Files */,
@@ -168,12 +214,18 @@
 		30719E9F1B7CA07000AE558F /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+<<<<<<< HEAD
+				0CF37E231B8E44BD0085289B /* remote_external.xml */,
+=======
 				0CF37E2C1B8FCA910085289B /* author.dtd */,
 				0CF37E2D1B8FCA910085289B /* local_external.xml */,
 				0CF37E2E1B8FCA910085289B /* remote_external.xml */,
+>>>>>>> a137d8de509de27f5710bac045f653ce5e927cda
 				308ADBDE1B7CAF7200D5EA24 /* xmlts20130923.tar.gz */,
 				30719EA01B7CA07000AE558F /* Info.plist */,
 				0CD6419F1B85363D000846BD /* empty.xml */,
+				0CF37E1F1B8CFE360085289B /* author.dtd */,
+				0CF37E211B8CFE7D0085289B /* local_external.xml */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -231,6 +283,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				0CD6437B1B8BE2F4000846BD /* PBXTargetDependency */,
 			);
 			name = IDZXMLParser;
 			productName = IDZXMLParser;
@@ -250,6 +303,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				0CD6437D1B8BE2FF000846BD /* PBXTargetDependency */,
 				30719E9D1B7CA07000AE558F /* PBXTargetDependency */,
 			);
 			name = IDZXMLParserTests;
@@ -284,6 +338,12 @@
 			mainGroup = 30719E851B7CA07000AE558F;
 			productRefGroup = 30719E901B7CA07000AE558F /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 0CD643741B8BE24B000846BD /* Products */;
+					ProjectRef = 0CD643731B8BE24B000846BD /* libxml2-ios.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				30719E8E1B7CA07000AE558F /* IDZXMLParser */,
@@ -291,6 +351,16 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0CD643781B8BE24B000846BD /* libxml2.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = libxml2.framework;
+			remoteRef = 0CD643771B8BE24B000846BD /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		30719E8D1B7CA07000AE558F /* Resources */ = {
@@ -304,11 +374,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
+				0CF37E241B8E44BD0085289B /* remote_external.xml in Resources */,
+				308ADBDF1B7CAF7200D5EA24 /* xmlts20130923.tar.gz in Resources */,
+				0CD641A01B85363D000846BD /* empty.xml in Resources */,
+				0CF37E221B8CFE7D0085289B /* local_external.xml in Resources */,
+				0CF37E201B8CFE360085289B /* author.dtd in Resources */,
+=======
 				0CF37E311B8FCA910085289B /* remote_external.xml in Resources */,
 				308ADBDF1B7CAF7200D5EA24 /* xmlts20130923.tar.gz in Resources */,
 				0CD641A01B85363D000846BD /* empty.xml in Resources */,
 				0CF37E301B8FCA910085289B /* local_external.xml in Resources */,
 				0CF37E2F1B8FCA910085289B /* author.dtd in Resources */,
+>>>>>>> a137d8de509de27f5710bac045f653ce5e927cda
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,17 +471,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C12B3AC1B8BE83F00B18B61 /* NSXMLParserTests.m in Sources */,
 				0CD641991B847198000846BD /* IDZXMLParserCallLogger.m in Sources */,
 				0CD6426A1B8678D7000846BD /* IDZXMLParserLibXML2Tests.m in Sources */,
 				30719EA21B7CA07000AE558F /* IDZXMLParserTests.m in Sources */,
 				0CD6419B1B847EC1000846BD /* IDZXMLParserExpatTests.m in Sources */,
-				0CD6419E1B851409000846BD /* NSXMLParserTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0CD6437B1B8BE2F4000846BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libxml2;
+			targetProxy = 0CD6437A1B8BE2F4000846BD /* PBXContainerItemProxy */;
+		};
+		0CD6437D1B8BE2FF000846BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libxml2;
+			targetProxy = 0CD6437C1B8BE2FF000846BD /* PBXContainerItemProxy */;
+		};
 		30719E9D1B7CA07000AE558F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 30719E8E1B7CA07000AE558F /* IDZXMLParser */;
@@ -523,6 +611,7 @@
 				INFOPLIST_FILE = IDZXMLParser/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -539,6 +628,7 @@
 				INFOPLIST_FILE = IDZXMLParser/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};

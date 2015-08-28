@@ -393,7 +393,7 @@ BOOL verbose = YES;
      IDZStartDocument, @[ parser ],
      @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
      IDZStartElement, @[ parser, @"book" ],
-     @selector(parser:resolveExternalEntityName:systemID:), @[ parser, @"author" ],
+     @selector(parser:resolveExternalEntityName:systemID:), @[ parser ],
      @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone"],
      IDZEndElement, @[ parser, @"book" ],
      IDZEndDocument, @[ parser ],

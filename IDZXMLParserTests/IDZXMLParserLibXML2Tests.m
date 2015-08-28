@@ -230,4 +230,20 @@
     [self remoteExternalAlways];
 }
 
+#pragma mark - External DTDs
+
+- (void)testProbeLocalExternalDTD
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external_dtd" withExtension:@"xml"];
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    XCTAssert(result, @"Parser completed successfully (%@)", parser.parserError);
+    [delegate dump];
+}
+
+
 @end
