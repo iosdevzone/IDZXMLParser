@@ -79,12 +79,33 @@ void IDZSAX2ExternalSubset(void *ctx, const xmlChar *name,
 xmlParserInputPtr IDZSAX2ResolveEntity(void *ctx, const xmlChar *publicId, const xmlChar *systemId)
 {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
-    return xmlSAX2ResolveEntity(ctx, publicId, systemId);
+    return xmlSAX2ResolveEntity(parser.context, publicId, systemId);
 }
 
 xmlEntityPtr IDZSAX2GetEntity(void *ctx, const xmlChar *name) {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
     return xmlSAX2GetEntity(parser.context, name);
+}
+
+xmlParserInputPtr IDZSAX2ExternalEntityLoader(const char *URL,
+                                                      const char *ID,
+                                                      xmlParserCtxtPtr ctx)
+{    
+    IDZXMLParserLibXML2 *parser = (__bridge IDZXMLParserLibXML2 *)ctx->_private;
+    if(![parser.delegate respondsToSelector:@selector(parser:resolveExternalEntityName:systemID:)])
+        return NULL;
+
+    NSData *data = [parser.delegate parser:parser resolveExternalEntityName:nil systemID:IDZString(URL)];
+    xmlParserInputBufferPtr input = xmlParserInputBufferCreateMem(data.bytes, (int)data.length, XML_CHAR_ENCODING_NONE);
+    if (input == NULL) {
+        return(NULL);
+    }
+    xmlParserInputPtr stream = xmlNewIOInputStream(ctx, input, XML_CHAR_ENCODING_NONE);
+    if (stream == NULL) {
+        xmlFreeParserInputBuffer(input);
+        return(NULL);
+    }
+    return stream;
 }
 
 xmlEntityPtr IDZSAX2GetParameterEntity(void *ctx, const xmlChar *name) {
@@ -459,7 +480,9 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
         if(!mContext) {
             return nil;
         }
-        mContext->options |= XML_PARSE_NONET;
+        mContext->options |= (XML_PARSE_NONET);
+        mContext->loadsubset = XML_DETECT_IDS;
+        mContext->_private = (__bridge void*)self;
     }
     return  self;
 }
@@ -478,7 +501,9 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
 {
     switch (self.externalEntityResolvingPolicy) {
         case NSXMLParserResolveExternalEntitiesNever:
-            mContext->replaceEntities = 0;
+            mContext->replaceEntities = 1;
+            mContext->options |= XML_PARSE_NONET;
+            //xmlSetExternalEntityLoader(IDZSAX2ExternalEntityLoader);
             break;
         case NSXMLParserResolveExternalEntitiesNoNetwork:
             mContext->replaceEntities = 1;

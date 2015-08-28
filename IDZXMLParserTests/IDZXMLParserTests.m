@@ -387,13 +387,13 @@ BOOL verbose = YES;
     parser.shouldResolveExternalEntities = YES;
     XCTAssert(parser.externalEntityResolvingPolicy == NSXMLParserResolveExternalEntitiesNever);
     BOOL result = [parser parse];
-    //[delegate dump];
+    [delegate dump];
     NSError *error = parser.parserError;
     [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
      IDZStartDocument, @[ parser ],
      @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
      IDZStartElement, @[ parser, @"book" ],
-     @selector(parser:resolveExternalEntityName:systemID:), @[ parser, @"author" ],
+     @selector(parser:resolveExternalEntityName:systemID:), @[ parser ],
      @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone"],
      IDZEndElement, @[ parser, @"book" ],
      IDZEndDocument, @[ parser ],
