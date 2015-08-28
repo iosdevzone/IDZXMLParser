@@ -22,6 +22,7 @@
 @synthesize parser = mParser;
 @synthesize delegate = mDelegate;
 @synthesize shouldResolveExternalEntities = mShouldResolveExternalEntities;
+@synthesize externalEntityResolvingPolicy = mExternalEntityResolvingPolicy;
 @synthesize inputStream = mInputStream;
 @synthesize parserError = mParserError;
 
@@ -37,7 +38,13 @@ static NSString* IDZExpatString2(const XML_Char *s, int len) {
     return [[NSString alloc] initWithBytes:s length:len encoding:NSUTF8StringEncoding];
 }
 
-
+static void IDZParserExpatXmlDeclHandlerNoOp(void           *userData,
+                                         const XML_Char *version,
+                                         const XML_Char *encoding,
+                                         int             standalone)
+{
+    // Intentional empty body
+}
 
 static void IDZParserExpatXmlDeclHandler(void           *userData,
                                     const XML_Char *version,
@@ -132,7 +139,7 @@ static void IDZXMLParserExpatElementDecl(void *userData,
 }
 /* 
  
- See xmlparse.c:
+ From xmlparse.c:
  
  This is called for entity declarations. The is_parameter_entity
  argument will be non-zero if the entity is a parameter entity, zero
@@ -212,7 +219,15 @@ static void IDZXMLParserExpatCharacterData(void *userData, const XML_Char* s, in
 }
 
 
-
+void IDZXMLParserExpatStartDoctypeDeclNoOp(
+                                       void *userData,
+                                       const XML_Char *doctypeName,
+                                       const XML_Char *sysid,
+                                       const XML_Char *pubid,
+                                       int has_internal_subset)
+{
+    // Intentional empty body
+}
 void IDZXMLParserExpatStartDoctypeDecl(
                                     void *userData,
                                     const XML_Char *doctypeName,
@@ -227,6 +242,10 @@ void IDZXMLParserExpatStartDoctypeDecl(
     [parser.delegate parser:parser foundStartDoctypeDecl:name systemID:systemID publicID:publicID hadInternalSubset:has_internal_subset];
 }
 
+void IDZXMLParserExpatEndDoctypeDeclNoOp(void *userData)
+{
+    // Intentional empty body
+}
 void IDZXMLParserExpatEndDoctypeDecl(void *userData)
 {
     IDZXMLParserExpat* parser = IDZXMLParserExpatGetParser(userData);
@@ -263,11 +282,35 @@ int IDZXMLParserExpatExternalEntityRef(
 {
     // This should have been setup by calling XML_SetBase at startup
     NSCParameterAssert(base);
+    IDZXMLParserExpat *idzParser = IDZXMLParserExpatGetParser(XML_GetUserData(parser));
     NSURL *resolved = [NSURL URLWithString:IDZExpatString(systemId) relativeToURL:[NSURL URLWithString:IDZExpatString(base)]];
 
     XML_Parser child = XML_ExternalEntityParserCreate(parser, context, NULL);
     char buffer[IDZ_EXPAT_BUFSIZ];
-    NSInputStream *inputStream = [[NSInputStream alloc] initWithURL:resolved];
+    NSInputStream *inputStream =  nil;
+    switch (idzParser.externalEntityResolvingPolicy) {
+        case NSXMLParserResolveExternalEntitiesNever:
+            if([idzParser.delegate respondsToSelector:@selector(parser:resolveExternalEntityName:systemID:)])
+            {
+                NSData* data = [idzParser.delegate parser:idzParser resolveExternalEntityName:IDZExpatString(context) systemID:IDZExpatString(systemId)];
+                if(data)
+                {
+                    inputStream = [[NSInputStream alloc] initWithData:data];
+                }
+            }
+            break;
+        case NSXMLParserResolveExternalEntitiesNoNetwork:
+            inputStream = [[NSInputStream alloc] initWithURL:resolved];
+            break;
+        case NSXMLParserResolveExternalEntitiesSameOriginOnly:
+            NSCAssert(NO, @"NSXMLParserResolveExternalEntitiesNever implemented.");
+            break;
+        case NSXMLParserResolveExternalEntitiesAlways:
+            inputStream = [[NSInputStream alloc] initWithData:[NSData dataWithContentsOfURL:resolved]];
+            break;
+        default:
+            NSCAssert(NO, @"Value of externalEntityResolvingPolicy is valid.");
+    }
     if(!inputStream) {
         return XML_STATUS_ERROR;
     }
@@ -395,16 +438,33 @@ static void IDZXMLParserExpatProcessingInstruction(
     if([delegate respondsToSelector:@selector(parser:foundXMLDeclarationWithVersion:encoding:standalone:)]) {
         XML_SetXmlDeclHandler(self.parser, IDZParserExpatXmlDeclHandler);
     }
+    else
+    {
+        XML_SetXmlDeclHandler(self.parser, IDZParserExpatXmlDeclHandlerNoOp);
+        
+    }
     
-    if([delegate respondsToSelector:@selector(parser:foundStartDoctypeDecl:systemID:publicID:hadInternalSubset:)]) {
+    if([delegate respondsToSelector:@selector(parser:foundStartDoctypeDecl:systemID:publicID:hadInternalSubset:)])
+    {
         XML_SetStartDoctypeDeclHandler(self.parser, IDZXMLParserExpatStartDoctypeDecl);
+    }
+    else{
+        XML_SetStartDoctypeDeclHandler(self.parser, IDZXMLParserExpatStartDoctypeDeclNoOp);
+        
     }
     
     if([delegate respondsToSelector:@selector(parserFoundEndDoctypeDecl:)]) {
         XML_SetEndDoctypeDeclHandler(self.parser, IDZXMLParserExpatEndDoctypeDecl);
         
     }
-    if([delegate respondsToSelector:@selector(parser:foundInternalEntityDeclarationWithName:value:)]) {
+    else
+    {
+        XML_SetEndDoctypeDeclHandler(self.parser, IDZXMLParserExpatEndDoctypeDeclNoOp);
+        
+    }
+
+    if([delegate respondsToSelector:@selector(parser:foundInternalEntityDeclarationWithName:value:)] ||
+       [delegate respondsToSelector:@selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:)]) {
         XML_SetEntityDeclHandler(self.parser, IDZXMLParserExpatEntityDecl);
     }
     
@@ -460,11 +520,35 @@ static void IDZXMLParserExpatProcessingInstruction(
     } while(1);
     
     [self.inputStream close];
+    
+    if(result == XML_STATUS_ERROR)
+    {
+        NSString *domain = NSXMLParserErrorDomain;
+        NSInteger code = 0;
+        NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+        enum XML_Error error = XML_GetErrorCode(self.parser);
+        switch (error) {
+            case XML_ERROR_EXTERNAL_ENTITY_HANDLING:
+                code = NSXMLParserUndeclaredEntityError;
+                NSLog(@"Translating XML_ERROR_EXTERNAL_ENTITY_HANDLING (%d) -> NSXMLParserUndeclaredEntityError (%d)",
+                      XML_ERROR_EXTERNAL_ENTITY_HANDLING, (int)code);
+                
+                break;
+            default:
+                domain = @"IDZXMLParserExpat";
+                code = error;
+                break;
+        }
+        self.parserError = [NSError errorWithDomain:domain code:code userInfo:userInfo];
+        return NO;
+    }
+    
+
     if([self.delegate respondsToSelector:@selector(parserDidEndDocument:)])
     {
         [self.delegate parserDidEndDocument:self];
     }
-    return (result == XML_STATUS_OK);
+    return YES;
 }
 
 - (NSInteger)lineNumber {

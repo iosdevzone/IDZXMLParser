@@ -177,5 +177,45 @@
     //[delegate dump];
 }
 
+#pragma mark - Local External Entities
+
+- (void)testLocalExternalNo
+{
+    [self localExternalNo];
+}
+
+- (void)testLocalExternalNever
+{
+    [self localExternalNever];
+}
+
+- (void)testLocalExternalNoNetwork
+{
+    [self localExternalNoNetwork];
+}
+
+- (void)testLocalExternalAlways
+{
+    [self localExternalAlways];
+}
+
+#pragma mark - Remote External Entities
+
+- (void)testRemoteExternalNever
+{
+    [self remoteExternalNever];
+}
+
+- (void)testRemoteExternalNoNetwork
+{
+    [self remoteExternalNoNetwork];
+}
+
+- (void)testRemoteExternalAlways
+{
+    [self remoteExternalAlwaysExpat];
+}
+
+
 
 @end
