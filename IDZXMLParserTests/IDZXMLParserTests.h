@@ -9,7 +9,9 @@
 #import <IDZXMLParser/IDZXMLParser.h>
 #import "IDZDelegateLogger.h"
 
-
+/**
+ * Delegate to test delegated external entity resolution.
+ */
 @interface ExternalEntityDelegate : NSObject<IDZXMLParserDelegate>
 @end
 
@@ -67,7 +69,18 @@ extern BOOL verbose;
 - (void)trivialValidWFCharacters;
 - (void)trivialValidWFComment;
 
-- (void)localExternal;
+- (void)localExternalNo;
+
+- (void)localExternalNever;
+- (void)localExternalNoNetwork;
+- (void)localExternalAlways;
+
+
+- (void)remoteExternalNever;
+- (void)remoteExternalNoNetwork;
+- (void)remoteExternalAlways;
+
+- (void)remoteExternalAlwaysExpat;
 
 @end
 

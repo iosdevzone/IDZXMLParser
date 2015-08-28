@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <!DOCTYPE book [
-<!ENTITY author "author.dtd">
+<!ENTITY author SYSTEM "http://www.iosdeveloperzone.com/author.dtd">
 ] >
 <book>&author;</book>

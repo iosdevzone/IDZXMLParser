@@ -18,6 +18,7 @@
 @property (nonatomic, weak) id<IDZXMLParserDelegate> delegate;
 @property (nonatomic, readonly) NSInteger lineNumber;
 @property (nonatomic, assign) BOOL shouldResolveExternalEntities;
+@property (nonatomic, assign) NSXMLParserExternalEntityResolvingPolicy externalEntityResolvingPolicy;
 @property (nonatomic, readonly) NSError* parserError;
 
 @end
@@ -57,7 +58,7 @@
 - (void)parser:(id<IDZXMLParser>)parser foundComment:(NSString *)comment;
 
 - (void)parser:(id<IDZXMLParser>)parser parseErrorOccurred:(NSError *)parseError;
-- (NSData *)parser:(NSXMLParser *)parser resolveExternalEntityName:(NSString *)name systemID:(NSString *)systemID;
+- (NSData *)parser:(id<IDZXMLParser>)parser resolveExternalEntityName:(NSString *)name systemID:(NSString *)systemID;
 
 
 - (void)parser:(id<IDZXMLParser>)parser defaultHandler:(NSString*)string;

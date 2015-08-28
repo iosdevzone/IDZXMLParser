@@ -26,6 +26,7 @@
 @synthesize delegate = mDelegate;
 @synthesize document = mDocument;
 @synthesize shouldResolveExternalEntities = mShouldResolveExternalEntities;
+@synthesize externalEntityResolvingPolicy = mExternalEntityResolvingPolicy;
 @synthesize parserError = mParserError;
 
 #define IDZ_BUFSIZ (16*1024)
@@ -175,6 +176,33 @@ void IDZSAX2CDataBlock(void *ctx, const xmlChar *value, int len) {
 void IDZSAX2ProcessingInstruction(void *ctx, const xmlChar *target,
                              const xmlChar *data) {
     
+}
+
+static NSError* NSErrorFromXMLErrorPtr(IDZXMLParserLibXML2* parser, xmlErrorPtr error)
+{
+    NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+    if(parser.parserError)
+    {
+        userInfo[NSUnderlyingErrorKey] = parser.parserError;
+    }
+    if(error->message)
+    {
+        userInfo[@"NSXMLParserErrorMessage"] = [NSString stringWithCString:error->message encoding:NSUTF8StringEncoding];
+    }
+    NSError *parseError = [[NSError alloc] initWithDomain:NSXMLParserErrorDomain code:error->code userInfo:userInfo];
+    return parseError;
+}
+
+void IDZSAX2StructuredErrorFunc(void *userData, xmlErrorPtr error)
+{
+    NSLog(@"Structured Code %d Level %d Message %s", error->code, error->level, error->message);
+    IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(userData);
+    NSError *parserError = NSErrorFromXMLErrorPtr(parser, error);
+    if([parser.delegate respondsToSelector:@selector(parser:parseErrorOccurred:)])
+    {
+        [parser.delegate parser:parser parseErrorOccurred:parserError];
+    }
+    parser.parserError = parserError;
 }
 
 void IDZParserError(void *ctx, const char *msg, ...) {
@@ -376,7 +404,7 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
     hdlr->endElement = NULL;
     hdlr->startElementNs = IDZSAX2StartElementNs;
     hdlr->endElementNs = IDZSAX2EndElementNs;
-    hdlr->serror = NULL;
+    hdlr->serror = IDZSAX2StructuredErrorFunc;
     hdlr->internalSubset = IDZSAX2InternalSubset;
     hdlr->externalSubset = IDZSAX2ExternalSubset;
     hdlr->isStandalone = IDZSAX2IsStandalone;
@@ -430,8 +458,8 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
         mContext = xmlCreatePushParserCtxt(&sax, (__bridge void*)self, NULL, 0, NULL);
         if(!mContext) {
             return nil;
-            
         }
+        mContext->options |= XML_PARSE_NONET;
     }
     return  self;
 }
@@ -446,12 +474,35 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
 
 #pragma mark - Parsing
 
+- (void)applyOptions
+{
+    switch (self.externalEntityResolvingPolicy) {
+        case NSXMLParserResolveExternalEntitiesNever:
+            mContext->replaceEntities = 0;
+            break;
+        case NSXMLParserResolveExternalEntitiesNoNetwork:
+            mContext->replaceEntities = 1;
+            mContext->options |= XML_PARSE_NONET;
+            break;
+        case NSXMLParserResolveExternalEntitiesSameOriginOnly:
+            NSAssert(NO, @"NSXMLParserResolveExternalEntitiesSameOriginOnly is not yet implmented");
+        case NSXMLParserResolveExternalEntitiesAlways:
+            mContext->replaceEntities = 1;
+            mContext->options &= ~XML_PARSE_NONET;
+            break;
+        default:
+            NSAssert(NO, @"Valid value for externalEntityResolvingPolicy (%d).", (int)self.externalEntityResolvingPolicy);
+    }
+
+}
+
 - (BOOL)parse {
     if(!self.inputStream)
     {
         self.parserError = [NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:nil];
         return NO;
     }
+    [self applyOptions];
     char buffer[IDZ_LIBXML2_BUFSIZ];
     [self.inputStream open];
     if(self.inputStream.streamError)
@@ -475,7 +526,12 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
     do {
         @autoreleasepool {
             result = xmlParseChunk(self.context, buffer, (int)nBytes, nBytes == 0);
-            if(result != XML_ERR_OK || nBytes == 0)
+            if(result != XML_ERR_OK)
+            {
+                NSAssert(self.context->lastError.code == self.parserError.code, @"Error propagation is correct.");
+                break;
+            }
+            if(nBytes == 0)
                 break;
             nBytes = [self.inputStream read:(uint8_t*)buffer maxLength:IDZ_LIBXML2_BUFSIZ];
             if(nBytes < 0)
@@ -486,11 +542,11 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
         }
     } while(1);
     
-    [self.inputStream close];
-    if([self.delegate respondsToSelector:@selector(parserDidEndDocument:)])
+    if((result == XML_ERR_OK) && [self.delegate respondsToSelector:@selector(parserDidEndDocument:)])
     {
         [self.delegate parserDidEndDocument:self];
     }
+    [self.inputStream close];
     return (result == XML_ERR_OK);
 }
 
@@ -506,10 +562,31 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
     return xmlSAX2GetLineNumber(self.context);
 }
 
-- (void)setShouldResolveExternalEntities:(BOOL)shouldResolveExternalEntities
-{
-    mShouldResolveExternalEntities = shouldResolveExternalEntities;
-    mContext->replaceEntities = shouldResolveExternalEntities ? YES : NO;
-}
+//- (void)setShouldResolveExternalEntities:(BOOL)shouldResolveExternalEntities
+//{
+//    mShouldResolveExternalEntities = shouldResolveExternalEntities;
+//    mContext->replaceEntities = shouldResolveExternalEntities ? YES : NO;
+//}
+//
+//- (void)setExternalEntityResolvingPolicy:(NSXMLParserExternalEntityResolvingPolicy)externalEntityResolvingPolicy
+//{
+//    switch (externalEntityResolvingPolicy) {
+//        case NSXMLParserResolveExternalEntitiesNever:
+//            mContext->replaceEntities = 0;
+//            break;
+//        case NSXMLParserResolveExternalEntitiesNoNetwork:
+//            mContext->replaceEntities = 1;
+//            mContext->options |= XML_PARSE_NONET;
+//            break;
+//        case NSXMLParserResolveExternalEntitiesSameOriginOnly:
+//            NSAssert(NO, @"NSXMLParserResolveExternalEntitiesSameOriginOnly is not yet implmented");
+//        case NSXMLParserResolveExternalEntitiesAlways:
+//            mContext->replaceEntities = 1;
+//            mContext->options &= ~XML_PARSE_NONET;
+//            break;
+//        default:
+//            NSAssert(NO, @"Valid value for externalEntityResolvingPolicy (%d).", (int)externalEntityResolvingPolicy);
+//    }
+//}
 
 @end

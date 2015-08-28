@@ -17,14 +17,31 @@
 
 BOOL verbose = YES;
 
+@interface ExternalEntityDelegate ()
+
+@property (nonatomic, readonly) NSURL *URL;
+@end
+
 @implementation ExternalEntityDelegate
+@synthesize URL = mURL;
 
-//- (BOOL)respondsToSelector:(SEL)aSelector
-//{
-//    NSLog(@"respondsToSelector: %@", NSStringFromSelector(aSelector));
-//    return [super respondsToSelector:aSelector];
-//}
+- (instancetype)initWithURL:(NSURL*)URL {
+    if(self = [super init])
+    {
+        mURL = URL;
+    }
+    return self;
+}
 
+- (void)parserDidStartDocument:(id<IDZXMLParser>)parser
+{
+    
+}
+
+- (void)parserDidEndDocument:(id<IDZXMLParser>)parser
+{
+    
+}
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict{
     NSLog(@"startElement: %@", elementName);
 }
@@ -33,26 +50,32 @@ BOOL verbose = YES;
 {
     NSLog(@"endElement: %@", elementName);
 }
-
+//
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
 {
     NSLog(@"foundCharacter: %@", string);
 }
-
-- (void)parser:(NSXMLParser *)parser foundReference:(NSString *)string
-{
-    NSLog(@"foundReference: %@", string);
-}
-
-- (void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError {
-    NSLog(@"parseErrorOccurred:%@", parseError);
-}
-
-//- (NSData*)parser:(NSXMLParser *)parser resolveExternalEntityName:(NSString *)name systemID:(NSString *)systemID
+//
+//- (void)parser:(NSXMLParser *)parser foundReference:(NSString *)string
 //{
-//    NSString *fizzbuzz = @"fizzbuzz";
-//    return [fizzbuzz dataUsingEncoding:NSUTF8StringEncoding];
+//    NSLog(@"foundReference: %@", string);
 //}
+//
+//- (void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError {
+//    NSLog(@"parseErrorOccurred:%@", parseError);
+//}
+
+- (void)parser:(id<IDZXMLParser>)parser foundExternalEntityDeclarationWithName:(NSString *)name publicID:(NSString *)publicID systemID:(NSString *)systemID
+{
+    
+}
+
+- (NSData*)parser:(NSXMLParser *)parser resolveExternalEntityName:(NSString *)name systemID:(NSString *)systemID
+{
+    NSURL *url = [NSURL URLWithString:systemID relativeToURL:self.URL];
+    NSData *data = [NSData dataWithContentsOfURL:url];
+    return data;
+}
 
 @end
 
@@ -229,7 +252,7 @@ BOOL verbose = YES;
 
 
 
-- (void)assertInvocations:(NSArray*)invocations match:(SEL)firstSelector, ...
+- (void)assertInvocations:(NSArray*)invocations ignoreWhitespace:(BOOL)ignoreWhitespace match:(SEL)firstSelector, ...
 {
     va_list args;
     va_start(args, firstSelector);
@@ -239,6 +262,13 @@ BOOL verbose = YES;
     {
         NSArray* arguments = va_arg(args, NSArray*);
         IDZInvocationDetails *invocation = invocations[idx++];
+        if(ignoreWhitespace)
+        {
+            while(invocation.selector == @selector(parser:foundIgnorableWhitespace:))
+            {
+                invocation = invocations[idx++];
+            }
+        }
         XCTAssertEqual(selector, invocation.selector);
         
         
@@ -252,7 +282,8 @@ BOOL verbose = YES;
         if(arguments && arguments.count > 0) {
             XCTAssert(arguments.count <= invocation.arguments.count);
             [arguments enumerateObjectsUsingBlock:^(NSArray *obj, NSUInteger idx, BOOL *stop) {
-                XCTAssert([obj isEqual:invocation.arguments[idx]]);
+                //XCTAssert([obj isEqual:invocation.arguments[idx]]);
+                XCTAssertEqualObjects(obj, invocation.arguments[idx]);
             }];
         }
         selector = va_arg(args, SEL);
@@ -272,7 +303,7 @@ BOOL verbose = YES;
     
     NSError *error = parser.parserError;
     XCTAssert(delegate.invocations.count == 4, @"Parser should have invoked delegate this many times.");
-    [self assertInvocations:delegate.invocations match:
+    [self assertInvocations:delegate.invocations ignoreWhitespace:NO match:
         IDZStartDocument, @[ parser ],
         IDZStartElement, @[ parser, @"doc" ],
         IDZEndElement, @[ parser, @"doc" ],
@@ -296,7 +327,7 @@ BOOL verbose = YES;
     
     NSError *error = parser.parserError;
     XCTAssert(delegate.invocations.count == 5, @"Parser should have invoked delegate this many times.");
-    [self assertInvocations:delegate.invocations match:
+    [self assertInvocations:delegate.invocations ignoreWhitespace:NO match:
      IDZStartDocument, @[ parser ],
      IDZStartElement, @[ parser, @"doc" ],
      @selector(parser:foundCharacters:), @[ parser, @"This is some text."],
@@ -308,12 +339,69 @@ BOOL verbose = YES;
     XCTAssert(result, @"Parser should complete succesfully withour error");
 }
 
-#pragma mark - External Entities
+#pragma mark - Local External Entities
+
 /**
- * Tests that a simple local entity can be expanded by the parser.
- * This requires that shouldResolveExternalEntities be YES.
+ * If shouldResolveExternalEntities is NO then the parser should
+ * pass the unexpanded entities to foundReference.
  */
-- (void)localExternal
+- (void)localExternalNo
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = NO;
+    XCTAssert(parser.externalEntityResolvingPolicy == NSXMLParserResolveExternalEntitiesNever);
+    BOOL result = [parser parse];
+    [delegate dump];
+    NSError *error = parser.parserError;
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:foundReference:), @[ parser, @"author"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
+
+/**
+ * If shouldResolveExternalEntities is YES but externalEntityResolvingPolicy is Never
+ * then the parser should pass all external resolution calls to the delegate.
+ *
+ * @todo This fails for the libxml2 implementation because delegated resolution is not implemented.
+ */
+- (void)localExternalNever
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    ExternalEntityDelegate *realDelegate = [[ExternalEntityDelegate alloc] initWithURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] initWithDelegate:realDelegate];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    XCTAssert(parser.externalEntityResolvingPolicy == NSXMLParserResolveExternalEntitiesNever);
+    BOOL result = [parser parse];
+    //[delegate dump];
+    NSError *error = parser.parserError;
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:resolveExternalEntityName:systemID:), @[ parser, @"author" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
+
+- (void)localExternalNoNetwork
 {
     NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external" withExtension:@"xml"];
     NSAssert(url, @"Missing test input file.");
@@ -322,13 +410,14 @@ BOOL verbose = YES;
     //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
     parser.delegate = delegate;
     parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
     BOOL result = [parser parse];
     [delegate dump];
     NSError *error = parser.parserError;
-    [self assertInvocations:delegate.invocations match:
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
      IDZStartDocument, @[ parser ],
      @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
-     @selector(parser:foundIgnorableWhitespace:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
      IDZStartElement, @[ parser, @"book" ],
      @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone"],
      IDZEndElement, @[ parser, @"book" ],
@@ -337,6 +426,142 @@ BOOL verbose = YES;
     XCTAssert(result && !error, @"Parser should complete succesfully without error");
 }
 
+
+
+- (void)localExternalAlways
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesAlways;
+    BOOL result = [parser parse];
+    [delegate dump];
+    NSError *error = parser.parserError;
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
+
+#pragma mark - Remote External Entities
+
+/**
+ * Tests that access to a remote external entity is denied
+ */
+- (void)remoteExternalNever
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"remote_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    ExternalEntityDelegate *realDelegate = [[ExternalEntityDelegate alloc] initWithURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] initWithDelegate:realDelegate];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNever;
+    BOOL result = [parser parse];
+    [delegate dump];
+    NSError *error = parser.parserError;
+    /* Should be XML_ERR_UNDECLARED_ENTITY == for libxml2 */
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:resolveExternalEntityName:systemID:), @[ parser, @"author", @"http://www.iosdeveloperzone.com/author.dtd" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone (1st Level)"],
+     @selector(parser:foundCharacters:), @[ parser, @"\n"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
+
+
+/**
+ * Tests that access to a remote external entity is denied
+ */
+- (void)remoteExternalNoNetwork
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"remote_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
+    BOOL result = [parser parse];
+    //[delegate dump];
+    NSError *error = parser.parserError;
+    /* Should be XML_ERR_UNDECLARED_ENTITY == for libxml2 */
+    XCTAssert(!result && error.code == NSXMLParserUndeclaredEntityError);
+}
+
+/**
+ * Tests successful access to remote external entity.
+ */
+- (void)remoteExternalAlways
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"remote_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesAlways;
+    BOOL result = [parser parse];
+    [delegate dump];
+    NSError *error = parser.parserError;
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone (1st Level)\n"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
+
+/**
+ * Expat reports the foundCharacters differently for this test.
+ */
+- (void)remoteExternalAlwaysExpat
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"remote_external" withExtension:@"xml"];
+    NSAssert(url, @"Missing test input file.");
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    parser.delegate = delegate;
+    parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesAlways;
+    BOOL result = [parser parse];
+    [delegate dump];
+    NSError *error = parser.parserError;
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundExternalEntityDeclarationWithName:publicID:systemID:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone (1st Level)"],
+     @selector(parser:foundCharacters:), @[ parser, @"\n"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
+    XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
 
 @end
 
