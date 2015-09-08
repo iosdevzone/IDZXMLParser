@@ -275,6 +275,18 @@ void IDZSAX2AttributeDecl(void *ctx, const xmlChar *elem, const xmlChar *fullnam
         case XML_ATTRIBUTE_CDATA:
             attributeType = @"CDATA";
             break;
+        case XML_ATTRIBUTE_ID:
+            attributeType = @"ID";
+            break;
+        case XML_ATTRIBUTE_NMTOKEN:
+            attributeType = @"NMTOKEN";
+            break;
+        case XML_ATTRIBUTE_NMTOKENS:
+            attributeType = @"NMTOKENS";
+            break;
+        case XML_ATTRIBUTE_ENUMERATION:
+            attributeType = @"ENUMERATION";
+            break;
         default:
             NSCAssert(NO, @"Unhandled attribute type");
     }
@@ -388,6 +400,10 @@ void IDZSAX2EndDocument(void *ctx) {
 void IDZSAX2Characters(void *ctx, const xmlChar *ch, int len) {
     NSString *characters = [[NSString alloc] initWithBytes:ch length:len encoding:NSUTF8StringEncoding];
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
+    /* (parser.context->depth == 0)  && */
+//    if(((parser.context->depth == 0) || (parser.context->external)) &&[parser.delegate respondsToSelector:@selector(parser:foundCharacters:)]) {
+//        [parser.delegate parser:parser foundCharacters:characters];
+//    }
     if((parser.context->depth == 0) && [parser.delegate respondsToSelector:@selector(parser:foundCharacters:)]) {
         [parser.delegate parser:parser foundCharacters:characters];
     }
@@ -397,8 +413,19 @@ void IDZSAX2Reference(void *ctx, const xmlChar *name) {
     IDZXMLParserLibXML2 *parser = IDZXMLParserLibXML2GetParser(ctx);
     if([parser.delegate respondsToSelector:@selector(parser:foundReference:)])
     {
-        //NSLog(@"%d: Reference: %s", (int)parser.lineNumber, (const char*)name);
+        NSLog(@"%d: Reference: %s", (int)parser.lineNumber, (const char*)name);
         [parser.delegate parser:parser foundReference:IDZString(name)];
+    }
+    else if([parser.delegate respondsToSelector:@selector(parser:foundCharacters:)])
+    {
+        xmlEntityPtr entity = IDZSAX2GetEntity(ctx, name);
+        if(!entity)
+        {
+            // @todo: Need suitable error here.
+            xmlStopParser(parser.context);
+            return;
+        }
+        [parser.delegate parser:parser foundCharacters:IDZString(entity->content)];
     }
 }
 
@@ -500,6 +527,11 @@ void IDZXMLSAXHandlerInit(xmlSAXHandler *hdlr)
 
 - (void)applyOptions
 {
+    if(self.shouldResolveExternalEntities == NO)
+    {
+        mContext->replaceEntities = 0;
+        return;
+    }
     switch (self.externalEntityResolvingPolicy) {
         case NSXMLParserResolveExternalEntitiesNever:
             mContext->replaceEntities = 1;

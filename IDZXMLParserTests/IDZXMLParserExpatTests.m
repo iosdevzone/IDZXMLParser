@@ -104,6 +104,22 @@
     [self trivialValidWFCharacters];
 }
 
+#pragma mark - Internal Entities
+
+/*
+ * Test that if foundReference is defined in the delegate
+ * that it is called with the unexpanded value of the referenced internal entity.
+ */
+- (void)testInternalEntityReference
+{
+    [self internalEntityReference];
+}
+
+- (void)testInternalEntityExpansion
+{
+    [self internalEntityExpansion];
+}
+
 - (void)testDefinedEntity
 {
     const char* content = IDZXML(
@@ -114,6 +130,7 @@
                                  </foo>);
     id<IDZXMLParser> parser = [self parserForCString:content];
     IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    delegate.ignoresFoundReference = YES;
     parser.delegate = delegate;
     BOOL result = [parser parse];
     [delegate dump];
@@ -215,6 +232,14 @@
 {
     [self remoteExternalAlwaysExpat];
 }
+
+#pragma mark - External DTDs
+
+- (void)testProbeLocalExternalDTD
+{
+    [self probeLocalExternalDTD];
+}
+
 
 
 

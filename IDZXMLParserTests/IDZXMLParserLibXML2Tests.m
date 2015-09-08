@@ -175,6 +175,19 @@
 }
 
 #pragma mark - Internal Entities
+/*
+ * Test that if foundReference is defined in the delegate
+ * that it is called with the unexpanded value of the referenced internal entity.
+ */
+- (void)testInternalEntityReference
+{
+    [self internalEntityReference];
+}
+
+- (void)testInternalEntityExpansion
+{
+    [self internalEntityExpansion];
+}
 
 - (void)testDefinedEntity
 {
@@ -186,6 +199,7 @@
                                  </foo>);
     id<IDZXMLParser> parser = [self parserForCString:content];
     IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    delegate.ignoresFoundReference = YES;
     parser.delegate = delegate;
     BOOL result = [parser parse];
     [delegate dump];
@@ -234,15 +248,7 @@
 
 - (void)testProbeLocalExternalDTD
 {
-    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external_dtd" withExtension:@"xml"];
-    id<IDZXMLParser> parser = [self parserForURL:url];
-    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
-    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
-    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
-    parser.delegate = delegate;
-    BOOL result = [parser parse];
-    XCTAssert(result, @"Parser completed successfully (%@)", parser.parserError);
-    [delegate dump];
+    [self probeLocalExternalDTD];
 }
 
 

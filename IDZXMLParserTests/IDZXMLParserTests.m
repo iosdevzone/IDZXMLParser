@@ -258,7 +258,7 @@ BOOL verbose = YES;
     va_start(args, firstSelector);
     SEL selector = firstSelector;
     NSInteger idx = 0;
-    while(selector)
+    while(selector && (idx < invocations.count))
     {
         NSArray* arguments = va_arg(args, NSArray*);
         IDZInvocationDetails *invocation = invocations[idx++];
@@ -272,10 +272,10 @@ BOOL verbose = YES;
         // The error message from this is too hard to visually parse
         //XCTAssertEqual(selector, invocation.selector);
         // Converting to strings is easier...
-        XCTAssertEqualObjects(NSStringFromSelector(selector), NSStringFromSelector(invocation.selector), @"Expected %@ Got %@",
-                              
-                              NSStringFromSelector(selector),
-                              NSStringFromSelector(invocation.selector));
+        NSString *expected = NSStringFromSelector(selector);
+        NSString *got = NSStringFromSelector(invocation.selector);
+        XCTAssertEqualObjects(expected, got, @"Expected %@ Got %@",
+                              expected, got);
         
         if(invocation.selector == selector) {
             if(arguments && arguments.count > 0) {
@@ -290,6 +290,8 @@ BOOL verbose = YES;
     }
     va_end(args);
 }
+
+#pragma mark - Wellformedness
 
 - (void)trivialValidWF
 {
@@ -338,6 +340,72 @@ BOOL verbose = YES;
     XCTAssert(result && !error, @"Parser should complete succesfully without error");
     XCTAssert(result, @"Parser should complete succesfully withour error");
 }
+
+#pragma mark - Internal Entities
+
+/*
+ * Test that if foundReference is defined in the delegate
+ * that it is called with the unexpanded value of the referenced internal entity.
+ */
+- (void)internalEntityReference
+{
+    const char* content = IDZXML(
+                                 <?xml version="1.0" standalone="yes" ?>
+                                 <!DOCTYPE foo [<!ENTITY bar "Johnnie Fox's">]>
+                                 <foo>
+                                 Entity expansion test begin &bar; end.
+                                 </foo>);
+    id<IDZXMLParser> parser = [self parserForCString:content];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    XCTAssert([delegate respondsToSelector:@selector(parser:foundReference:)]);
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    XCTAssert(result);
+    XCTAssertNil(parser.parserError);
+    [delegate dump];
+    __block BOOL pass = NO;
+    [delegate.invocations enumerateObjectsUsingBlock:^(IDZInvocationDetails *invocation, NSUInteger idx, BOOL *stop) {
+        if(invocation.selector == @selector(parser:foundReference:) &&
+           [invocation.arguments[1] isEqualToString:@"bar"]) {
+            pass = YES;
+            *stop = YES;
+        }
+    }];
+    XCTAssert(pass, @"parser:foundReference: was called with entity name");
+}
+
+/*
+ * Test that if foundReference is not defined in the delegate
+ * that foundCharacters is called with the expansion of the entity.
+ */
+- (void)internalEntityExpansion
+{
+    const char* content = IDZXML(
+                                 <?xml version="1.0" standalone="yes" ?>
+                                 <!DOCTYPE foo [<!ENTITY bar "Johnnie Fox's">]>
+                                 <foo>
+                                 Entity expansion test begin &bar; end.
+                                 </foo>);
+    id<IDZXMLParser> parser = [self parserForCString:content];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    delegate.ignoresFoundReference = YES;
+    XCTAssert(![delegate respondsToSelector:@selector(parser:foundReference:)]);
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    XCTAssert(result);
+    XCTAssertNil(parser.parserError);
+    [delegate dump];
+    __block BOOL pass = NO;
+    [delegate.invocations enumerateObjectsUsingBlock:^(IDZInvocationDetails *invocation, NSUInteger idx, BOOL *stop) {
+        if(invocation.selector == @selector(parser:foundCharacters:) &&
+           [invocation.arguments[1] isEqualToString:@"Johnnie Fox's"]) {
+            pass = YES;
+            *stop = YES;
+        }
+    }];
+    XCTAssert(pass, @"parser:foundCharacters: was called with expanded entity");
+}
+
 
 #pragma mark - Local External Entities
 
@@ -561,6 +629,32 @@ BOOL verbose = YES;
      IDZEndDocument, @[ parser ],
      nil];
     XCTAssert(result && !error, @"Parser should complete succesfully without error");
+}
+
+#pragma mark - Local External DTDs
+
+- (void)probeLocalExternalDTD
+{
+    NSURL *url = [[NSBundle bundleForClass:[self class]] URLForResource:@"local_external_dtd" withExtension:@"xml"];
+    id<IDZXMLParser> parser = [self parserForURL:url];
+    parser.shouldResolveExternalEntities = YES;
+    parser.externalEntityResolvingPolicy = NSXMLParserResolveExternalEntitiesNoNetwork;
+    //ExternalEntityDelegate *delegate = [[ExternalEntityDelegate alloc] init];
+    IDZXMLParserCallLogger *delegate = [[IDZXMLParserCallLogger alloc] init];
+    delegate.ignoresFoundReference = YES;
+    parser.delegate = delegate;
+    BOOL result = [parser parse];
+    XCTAssert(result, @"Parser completed successfully (%@)", parser.parserError);
+    [delegate dump];
+    [self assertInvocations:delegate.invocations ignoreWhitespace:YES match:
+     IDZStartDocument, @[ parser ],
+     @selector(parser:foundInternalEntityDeclarationWithName:value:), @[],
+     //@selector(parser:foundIgnorableWhitespace:), @[],
+     IDZStartElement, @[ parser, @"book" ],
+     @selector(parser:foundCharacters:), @[ parser, @"iOS Developer Zone (from book.dtd)"],
+     IDZEndElement, @[ parser, @"book" ],
+     IDZEndDocument, @[ parser ],
+     nil];
 }
 
 @end

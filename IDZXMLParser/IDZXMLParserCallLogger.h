@@ -12,7 +12,12 @@
 #import <IDZDelegateLogger/IDZDelegateLogger.h>
 
 @interface IDZXMLParserCallLogger : IDZDelegateLogger<IDZXMLParserDelegate>
-
+/*
+ * Makes life easier when testing entity expansion.
+ * If YES logger will pretend it does not responds to @selector(parser:foundReference).
+ * Default is NO.
+ */
+@property (nonatomic, assign) BOOL ignoresFoundReference;
 @end
 
 

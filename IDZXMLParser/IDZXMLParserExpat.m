@@ -240,6 +240,7 @@ void IDZXMLParserExpatStartDoctypeDecl(
     NSString *publicID = pubid ? [[NSString alloc] initWithCString:pubid encoding:NSUTF8StringEncoding] : nil;
     IDZXMLParserExpat* parser = IDZXMLParserExpatGetParser(userData);
     [parser.delegate parser:parser foundStartDoctypeDecl:name systemID:systemID publicID:publicID hadInternalSubset:has_internal_subset];
+    
 }
 
 void IDZXMLParserExpatEndDoctypeDeclNoOp(void *userData)
@@ -396,6 +397,7 @@ static void IDZXMLParserExpatProcessingInstruction(
             return nil;
         }
         XML_SetUserData(mParser, (__bridge void*)self);
+        XML_SetParamEntityParsing(mParser, XML_PARAM_ENTITY_PARSING_ALWAYS);
     }
     return  self;
 }
@@ -410,9 +412,14 @@ static void IDZXMLParserExpatProcessingInstruction(
 
 - (void)setDelegate:(id<IDZXMLParserDelegate>)delegate {
     mDelegate = delegate;
-    if([delegate respondsToSelector:@selector(parser:defaultHandler:)] ||
-       [delegate respondsToSelector:@selector(parser:foundReference:)]) {
-        XML_SetDefaultHandler(self.parser, IDZXMLParserExpatDefault);
+    if([delegate respondsToSelector:@selector(parser:defaultHandler:)]) {
+        if([delegate respondsToSelector:@selector(parser:foundReference:)]) {
+            XML_SetDefaultHandler(self.parser, IDZXMLParserExpatDefault);
+        }
+        else
+        {
+           XML_SetDefaultHandlerExpand(self.parser, IDZXMLParserExpatDefault);
+        }
     }
     if([delegate respondsToSelector:@selector(parser:foundCharacters:)]) {
         XML_SetCharacterDataHandler(self.parser, IDZXMLParserExpatCharacterData);

@@ -69,6 +69,9 @@ extern BOOL verbose;
 - (void)trivialValidWFCharacters;
 - (void)trivialValidWFComment;
 
+- (void)internalEntityReference;
+- (void)internalEntityExpansion;
+
 - (void)localExternalNo;
 
 - (void)localExternalNever;
@@ -81,6 +84,9 @@ extern BOOL verbose;
 - (void)remoteExternalAlways;
 
 - (void)remoteExternalAlwaysExpat;
+
+// Local External DTDs
+- (void)probeLocalExternalDTD;
 
 @end
 
